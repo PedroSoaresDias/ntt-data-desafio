@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.ntt.product_service.domain.DTO.ProductRequest;
@@ -32,6 +33,15 @@ public class ProductController {
     @GetMapping("/{id}")
     public ResponseEntity<ProductResponse> getProductById(@PathVariable Long id) {
         return ResponseEntity.ok(productService.getProductById(id));
+    }
+
+    @GetMapping("/filter")
+    public ResponseEntity<List<ProductResponse>> getProductsByIds(@RequestParam List<Long> ids) {
+        List<ProductResponse> products = ids.stream()
+        .map(productService::getProductById)
+                .toList();
+        
+        return ResponseEntity.ok(products);
     }
 
     @PostMapping

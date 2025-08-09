@@ -23,14 +23,14 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderResponse simulateOrder(List<Long> productIds) {
         String idsParam = String.join(",", productIds.stream().map(String::valueOf).toList());
-        String url = "http://localhost:8181/products/" + idsParam;
+        String url = "http://localhost:8181/products/filter?ids=" + idsParam;
 
         ResponseEntity<List<ProductDTO>> response = restTemplate.exchange(
-            url, 
-            HttpMethod.GET,
-            null,
-            new ParameterizedTypeReference<List<ProductDTO>>() {}
-        );
+                url,
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<ProductDTO>>() {
+                });
 
         List<ProductDTO> products = response.getBody();
         double total = products.stream().mapToDouble(ProductDTO::price).sum();
