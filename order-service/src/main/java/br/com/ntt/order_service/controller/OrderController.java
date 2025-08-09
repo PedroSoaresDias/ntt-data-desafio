@@ -5,13 +5,23 @@ import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import br.com.ntt.order_service.domain.DTO.OrderResponse;
+import br.com.ntt.order_service.service.OrderService;
 
 @RestController
 @RequestMapping("/orders")
 public class OrderController {
-    @GetMapping
-    public ResponseEntity<List<String>> getAllOrders() {
-        return ResponseEntity.ok(List.of("Pedido 1", "Pedido 2", "Pedido 3"));
+    private final OrderService orderService;
+
+    public OrderController(OrderService orderService) {
+        this.orderService = orderService;
+    }
+
+    @GetMapping("/simulate")
+    public ResponseEntity<OrderResponse> simulateOrder(@RequestParam List<Long> ids) {
+        return ResponseEntity.ok(orderService.simulateOrder(ids));
     }
 }
