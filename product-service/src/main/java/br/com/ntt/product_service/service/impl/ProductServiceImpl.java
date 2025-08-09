@@ -36,6 +36,15 @@ public class ProductServiceImpl implements ProductService {
         ProductResponse response = toDTO(product);
         return response;
     }
+    
+    @Override
+    public List<ProductResponse> getAllProductsByIds(List<Long> ids) {
+        List<Product> products = productRepository.findAllById(ids);
+        List<ProductResponse> response = products.stream()
+                .map(this::toDTO)
+                .toList();
+        return response;
+    }
 
     @Override
     public void createProduct(ProductRequest request) {
@@ -50,4 +59,5 @@ public class ProductServiceImpl implements ProductService {
     private ProductResponse toDTO(Product product) {
         return new ProductResponse(product.getId(), product.getName(), product.getDescription(), product.getPrice());
     }
+
 }

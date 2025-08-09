@@ -11,4 +11,6 @@ public interface ProductService {
     ProductResponse getProductById(Long id);
 
     void createProduct(ProductRequest request);
+
+    List<ProductResponse> getAllProductsByIds(List<Long> ids);
 }

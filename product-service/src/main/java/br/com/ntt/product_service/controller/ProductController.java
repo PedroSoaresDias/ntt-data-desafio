@@ -37,11 +37,7 @@ public class ProductController {
 
     @GetMapping("/filter")
     public ResponseEntity<List<ProductResponse>> getProductsByIds(@RequestParam List<Long> ids) {
-        List<ProductResponse> products = ids.stream()
-        .map(productService::getProductById)
-                .toList();
-        
-        return ResponseEntity.ok(products);
+        return ResponseEntity.ok(productService.getAllProductsByIds(ids));
     }
 
     @PostMapping
