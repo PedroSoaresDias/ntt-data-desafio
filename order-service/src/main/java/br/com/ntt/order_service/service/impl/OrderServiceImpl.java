@@ -1,44 +1,41 @@
 package br.com.ntt.order_service.service.impl;
 
-import java.util.List;
+import java.util.Collection;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import br.com.ntt.order_service.domain.DTO.OrderResponse;
 import br.com.ntt.order_service.domain.DTO.ProductDTO;
 import br.com.ntt.order_service.service.OrderService;
+import reactor.core.publisher.Flux;
 
 @Service
 public class OrderServiceImpl implements OrderService {
-    private final RestTemplate restTemplate;
+    private final WebClient webClient;
     private final String productServiceUrl;
 
-    public OrderServiceImpl(RestTemplate restTemplate, @Value("${product.service.url}") String productServiceUrl) {
-        this.restTemplate = restTemplate;
+    public OrderServiceImpl(WebClient.Builder webClientBuilder, @Value("${product.service.url}") String productServiceUrl) {
+        this.webClient = webClientBuilder.build();
         this.productServiceUrl = productServiceUrl;
     }
 
     @Override
-    public OrderResponse simulateOrder(List<Long> productIds) {
+    public Flux<OrderResponse> simulateOrder(Collection<Long> productIds) {
         String idsParam = String.join(",", productIds.stream().map(String::valueOf).toList());
         String url = productServiceUrl + "/products/filter?ids=" + idsParam;
 
-        ResponseEntity<List<ProductDTO>> response = restTemplate.exchange(
-                url,
-                HttpMethod.GET,
-                null,
-                new ParameterizedTypeReference<List<ProductDTO>>() {
-                });
-
-        List<ProductDTO> products = response.getBody();
-        double total = products.stream().mapToDouble(ProductDTO::price).sum();
-
-        return new OrderResponse(products, total);
+        return webClient.get()
+                .uri(url)
+                .retrieve()
+                .bodyToFlux(ProductDTO.class)
+                .collectList()
+                .map(products -> {
+                    double total = products.stream().mapToDouble(ProductDTO::price).sum();
+                    return new OrderResponse(products, total);
+                })
+                .flux();
     }
 
 }

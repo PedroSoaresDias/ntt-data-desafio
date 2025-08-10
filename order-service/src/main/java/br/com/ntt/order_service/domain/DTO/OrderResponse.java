@@ -1,7 +1,7 @@
 package br.com.ntt.order_service.domain.DTO;
 
-import java.util.List;
+import java.util.Collection;
 
-public record OrderResponse(List<ProductDTO> products, double totalPrice) {
+public record OrderResponse(Collection<ProductDTO> products, double totalPrice) {
 
 }
