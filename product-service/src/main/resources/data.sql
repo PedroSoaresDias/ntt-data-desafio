@@ -1,0 +1,2 @@
+INSERT INTO tb_products (name, description, price) VALUES ('Notebook', 'Ultrafino com SSD', 3500.00);
+INSERT INTO tb_products (name, description, price) VALUES ('Mouse', 'Mouse óptico sem fio', 120.00);

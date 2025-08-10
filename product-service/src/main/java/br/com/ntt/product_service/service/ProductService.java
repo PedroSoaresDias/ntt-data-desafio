@@ -1,16 +1,18 @@
 package br.com.ntt.product_service.service;
 
-import java.util.List;
+import java.util.Collection;
 
 import br.com.ntt.product_service.domain.DTO.ProductRequest;
 import br.com.ntt.product_service.domain.DTO.ProductResponse;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 public interface ProductService {
-    List<ProductResponse> getAllProducts();
+    Flux<ProductResponse> getAllProducts();
 
-    ProductResponse getProductById(Long id);
+    Mono<ProductResponse> getProductById(Long id);
 
-    void createProduct(ProductRequest request);
+    Mono<Void> createProduct(ProductRequest request);
 
-    List<ProductResponse> getAllProductsByIds(List<Long> ids);
+    Flux<ProductResponse> getAllProductsByIds(Collection<Long> ids);
 }

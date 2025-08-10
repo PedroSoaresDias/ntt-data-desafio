@@ -1,7 +1,6 @@
 package br.com.ntt.product_service.service.impl;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Collection;
 
 import org.springframework.stereotype.Service;
 
@@ -11,6 +10,8 @@ import br.com.ntt.product_service.domain.model.Product;
 import br.com.ntt.product_service.domain.repository.ProductRepository;
 import br.com.ntt.product_service.exceptions.ProductNotFoundException;
 import br.com.ntt.product_service.service.ProductService;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Service
 public class ProductServiceImpl implements ProductService {
@@ -22,38 +23,29 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ProductResponse> getAllProducts() {
-        List<Product> products = productRepository.findAll();
-        List<ProductResponse> response = products.stream().map(this::toDTO).collect(Collectors.toList());
-        
-        return response;
+    public Flux<ProductResponse> getAllProducts() {
+        return productRepository.findAll().map(this::toDTO);
     }
 
     @Override
-    public ProductResponse getProductById(Long id) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ProductNotFoundException("Produto não encontrado"));
-        ProductResponse response = toDTO(product);
-        return response;
+    public Mono<ProductResponse> getProductById(Long id) {
+        return productRepository.findById(id)
+                .map(this::toDTO).switchIfEmpty(Mono.error(new ProductNotFoundException("Produto não encontrado")));
     }
     
     @Override
-    public List<ProductResponse> getAllProductsByIds(List<Long> ids) {
-        List<Product> products = productRepository.findAllById(ids);
-        List<ProductResponse> response = products.stream()
-                .map(this::toDTO)
-                .toList();
-        return response;
+    public Flux<ProductResponse> getAllProductsByIds(Collection<Long> ids) {
+        return productRepository.findByIdIn(ids).map(this::toDTO);
     }
 
     @Override
-    public void createProduct(ProductRequest request) {
+    public Mono<Void> createProduct(ProductRequest request) {
         Product product = new Product();
         product.setName(request.name());
         product.setDescription(request.description());
         product.setPrice(request.price());
 
-        productRepository.save(product);
+        return productRepository.save(product).then();
     }
     
     private ProductResponse toDTO(Product product) {

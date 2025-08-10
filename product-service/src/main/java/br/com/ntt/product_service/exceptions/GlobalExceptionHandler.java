@@ -5,52 +5,47 @@ import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.bind.support.WebExchangeBindException;
+import org.springframework.web.server.ServerWebExchange;
 
 import br.com.ntt.product_service.domain.DTO.ErrorResponse;
-import jakarta.servlet.http.HttpServletRequest;
+import reactor.core.publisher.Mono;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ProductNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleProductNotFound(ProductNotFoundException ex,
-            HttpServletRequest request) {
-        return buildErrorResponse(HttpStatus.NOT_FOUND, ex, request);
+    public Mono<ResponseEntity<ErrorResponse>> handleProductNotFound(ProductNotFoundException ex,
+            ServerWebExchange exchange) {
+        return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage(), exchange);
     }
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationError(MethodArgumentNotValidException ex,
-            HttpServletRequest request) {
-        String errorMsg = ex.getBindingResult()
-                .getFieldErrors()
+    @ExceptionHandler(WebExchangeBindException.class)
+    public Mono<ResponseEntity<ErrorResponse>> handleValidationError(WebExchangeBindException ex,
+            ServerWebExchange exchange) {
+        String errorMsg = ex.getFieldErrors()
                 .stream()
                 .map(field -> field.getField() + ": " + field.getDefaultMessage())
                 .collect(Collectors.joining("; "));
 
-        return buildErrorResponse(HttpStatus.BAD_REQUEST, errorMsg, request.getRequestURI());
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, errorMsg, exchange);
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleUnexpectedError(Exception ex, HttpServletRequest request) {
+    public Mono<ResponseEntity<ErrorResponse>> handleUnexpectedError(Exception ex, ServerWebExchange exchange) {
         ex.printStackTrace(); // log interno
-        return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Erro inesperado", request.getRequestURI());
+        return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Erro inesperado", exchange);
     }
 
-    private ResponseEntity<ErrorResponse> buildErrorResponse(HttpStatus status, Exception ex,
-            HttpServletRequest request) {
-        return buildErrorResponse(status, ex.getMessage(), request.getRequestURI());
-    }
-
-    private ResponseEntity<ErrorResponse> buildErrorResponse(HttpStatus status, String message, String path) {
+    private Mono<ResponseEntity<ErrorResponse>> buildErrorResponse(HttpStatus status, String message, ServerWebExchange exchange) {
         ErrorResponse error = new ErrorResponse(
                 status.value(),
                 status.getReasonPhrase(),
                 message,
-                path,
+                exchange.getRequest().getPath().value(),
                 LocalDateTime.now());
-        return ResponseEntity.status(status).body(error);
+        return Mono.just(ResponseEntity.status(status).body(error));
     }
 }

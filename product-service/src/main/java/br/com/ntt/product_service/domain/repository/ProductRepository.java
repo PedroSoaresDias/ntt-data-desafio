@@ -1,13 +1,11 @@
 package br.com.ntt.product_service.domain.repository;
 
-import java.util.List;
+import java.util.Collection;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-
+import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import br.com.ntt.product_service.domain.model.Product;
+import reactor.core.publisher.Flux;
 
-@Repository
-public interface ProductRepository extends JpaRepository<Product, Long> {
-    List<Product> findByIdIn(List<Long> ids);
+public interface ProductRepository extends ReactiveCrudRepository<Product, Long> {
+    Flux<Product> findByIdIn(Collection<Long> ids);
 }
