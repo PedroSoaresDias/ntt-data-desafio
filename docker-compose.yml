@@ -1,0 +1,52 @@
+networks:
+  ntt-data-desafio:
+
+services: 
+  ntt-data-discovery:
+    image: ntt-data-discovery
+    container_name: ntt-data-discovery
+    ports:
+      - 8761:8761
+    networks:
+      - ntt-data-desafio
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ntt-data-gateway:
+    image: ntt-data-gateway
+    container_name: ntt-data-gateway
+    ports:
+      - 8787:8787
+    networks:
+      - ntt-data-desafio
+    environment:
+      - eureka.client.service-url.defaultZone=http://ntt-data-discovery:8761/eureka/
+    depends_on:
+      - ntt-data-discovery
+
+  ntt-data-product:
+    image: ntt-data-product
+    container_name: ntt-data-product
+    ports:
+      - 8181:8181
+    networks:
+      - ntt-data-desafio
+    environment:
+      - eureka.client.service-url.defaultZone=http://ntt-data-discovery:8761/eureka/
+    depends_on:
+      - ntt-data-discovery
+
+  ntt-data-order:
+    image: ntt-data-order
+    container_name: ntt-data-order
+    ports:
+      - 8282:8282
+    networks:
+      - ntt-data-desafio
+    environment:
+      - eureka.client.service-url.defaultZone=http://ntt-data-discovery:8761/eureka/
+    depends_on:
+      - ntt-data-discovery
